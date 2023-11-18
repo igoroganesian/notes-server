@@ -13,6 +13,78 @@ app.get('/api/notes', async (req, res) => {
   res.json(notes);
 });
 
+app.post('/api/notes', async (req, res) => {
+  const { title, content } = req.body;
+
+  if (!title || !content) {
+    return res
+      .status(400)
+      .send('title and content fields are required');
+  }
+
+  try {
+    const note = await prisma.note.create({
+      data: { title, content }
+    });
+    res.json(note);
+  } catch (error) {
+    res
+      .status(500)
+      .send('internal server error');
+  }
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+  const { title, content } = req.body;
+  const id = parseInt(req.params.id);
+
+  if (!title || !content) {
+    return res
+      .status(400)
+      .send('title and content fields are required');
+  }
+
+  if (!id || isNaN(id)) {
+    return res
+      .status(400)
+      .send('ID must be a valid number');
+  }
+
+  try {
+    const updatedNote =
+      await prisma.note.update({
+        where: { id },
+        data: { title, content },
+      });
+    res.json(updatedNote);
+  } catch (error) {
+    res
+      .status(500)
+      .send('internal server error');
+  }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  if (!id || isNaN(id)) {
+    return res
+      .status(400)
+      .send('ID must be a valid number');
+  }
+
+  try {
+    await prisma.note.delete({
+      where: { id }
+    });
+    res.status(204).send('note deleted');
+  } catch (error) {
+    res
+      .status(500)
+      .send('internal server error');
+  }
+});
+
 app.listen(5001, () => {
   console.log('server running on localhost:5001');
 });
